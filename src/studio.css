@@ -1,0 +1,454 @@
+@import "tailwindcss";
+@import "./theme.css";
+.canvas .node .editContent > button,
+.canvas .node .editContent > input,
+.canvas .node .editContent > .MuiTextField-root {
+  pointer-events: auto;
+}
+.variantControls {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.variantControls label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.variantControls select {
+  background: #303039;
+  padding: 6px;
+  border-radius: 4px;
+}
+.variantControls input {
+  accent-color: #b4e66b;
+}
+.canvas .node,
+.canvas .editContent {
+  display: contents;
+}
+.canvas .node.selected > .editContent > * {
+  outline: 2px solid #8dbd45;
+  outline-offset: 2px;
+}
+.canvas .node.dropTarget > .editContent > * {
+  outline: 3px dashed #529d18;
+}
+.canvas .node.selected > .editContent > .node {
+  outline: 0;
+}
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #dedee4;
+  background: #141417;
+  font-size: 13px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.studio {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 1100px;
+}
+.top {
+  height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  border-bottom: 1px solid #313139;
+  background: #1a1a1e;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.brand svg {
+  color: #b4e66b;
+}
+.brand small {
+  font-size: 9px;
+  color: #a5a2ad;
+  border: 1px solid #44414c;
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+.top > span {
+  color: #a4a1ad;
+  font-size: 12px;
+}
+.top nav {
+  margin-left: auto;
+  display: flex;
+  gap: 5px;
+}
+.studio button:not(.sample button):not(.canvas button) {
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #25252c;
+  color: #dedee4;
+  border: 1px solid transparent;
+}
+.studio button:hover:not(:disabled):not(.sample button):not(.canvas button) {
+  border-color: #596444;
+}
+.studio button.accent {
+  background: #b4e66b;
+  color: #18200d;
+  font-weight: 650;
+}
+.workbench {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.catalogPanel {
+  width: 285px;
+  flex-shrink: 0;
+  border-right: 1px solid #303039;
+  background: #1a1a1e;
+  overflow: auto;
+}
+.inspector {
+  width: 250px;
+  flex-shrink: 0;
+  border-left: 1px solid #303039;
+  background: #1a1a1e;
+  overflow: auto;
+}
+.tabs {
+  display: flex;
+  padding: 10px;
+  gap: 8px;
+  border-bottom: 1px solid #303039;
+}
+.tabs button {
+  flex: 1;
+}
+.studio button.active {
+  background: #303c24;
+  color: #c5f494;
+}
+.panelHeading {
+  padding: 20px 16px 10px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+.panelHeading h2 {
+  font-size: 16px;
+  font-weight: 650;
+}
+.panelHeading h3,
+section h3 {
+  font-size: 12px;
+  font-weight: 600;
+}
+.panelHeading p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #918d9c;
+  margin-top: 5px;
+}
+.search {
+  margin: 0 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #25252c;
+  padding: 9px;
+  border-radius: 6px;
+}
+.search input {
+  background: transparent;
+  width: 100%;
+  outline: none;
+  font-size: 11px;
+}
+.familyList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 14px;
+}
+.familyList button {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 4px !important;
+}
+.familyList small {
+  color: #92909c;
+  font-size: 10px;
+}
+.variantList {
+  padding: 6px 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.variantTile {
+  border: 1px solid #38383f;
+  border-radius: 9px;
+  overflow: hidden;
+  cursor: grab;
+}
+.sample {
+  background: #fff;
+  color: #171717;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  pointer-events: none;
+}
+.tileCaption {
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.tileCaption button {
+  font-size: 10px;
+  padding: 5px !important;
+}
+.center {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.canvasToolbar {
+  height: 51px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 14px;
+  border-bottom: 1px solid #303039;
+  font-size: 11px;
+}
+.canvasToolbar > div {
+  display: flex;
+  gap: 3px;
+}
+.canvasToolbar button {
+  text-transform: capitalize;
+  padding: 5px 8px !important;
+}
+.canvasToolbar select {
+  background: #25252c;
+  padding: 5px;
+}
+.canvasScroll {
+  flex: 1;
+  overflow: auto;
+  background-image: radial-gradient(#35343c 0.7px, transparent 0.7px);
+  background-size: 16px 16px;
+  padding: 28px;
+}
+.pageLabel {
+  color: #9995a4;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.canvas {
+  background: #fff;
+  color: #171717;
+  min-height: 650px;
+  box-shadow: 0 15px 60px #0005;
+  border-radius: 5px;
+  padding: 12px;
+}
+.node {
+  min-width: 0;
+  position: relative;
+  align-self: stretch;
+}
+.node.selected {
+  outline: 2px solid #8dbd45;
+  outline-offset: 2px;
+}
+.node.dropTarget {
+  outline: 3px dashed #529d18;
+  background: #ddffc8;
+}
+.editContent > button,
+.editContent > input,
+.editContent > .MuiTextField-root {
+  pointer-events: none;
+}
+.empty {
+  border: 1px dashed #b3c79d;
+  border-radius: 8px;
+  text-align: center;
+  padding: 45px 20px;
+  color: #809270;
+  background: #f6faef;
+  font-size: 13px;
+  min-height: 125px;
+}
+.empty small {
+  font-size: 11px;
+}
+.inspector section {
+  padding: 16px;
+  border-top: 1px solid #303039;
+}
+section h3 {
+  margin-bottom: 15px;
+}
+label {
+  font-size: 11px;
+  color: #aaa5b5;
+}
+.inspector label,
+.dialog label {
+  display: block;
+  margin: 12px 0;
+}
+.inspector input:not([type="checkbox"]),
+.inspector select,
+.dialog input,
+.dialog select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  height: 33px;
+  border: 1px solid #3e3c48;
+  background: #24242b;
+  color: #e3e0e9;
+  border-radius: 5px;
+  padding: 5px 8px;
+  outline: none;
+}
+.inspector input:focus,
+.dialog input:focus {
+  border-color: #b4e66b;
+}
+.checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+.checkbox input {
+  accent-color: #b4e66b;
+}
+.actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.layer {
+  display: flex !important;
+  justify-content: flex-start !important;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+}
+.studio footer {
+  height: 32px;
+  background: #1a1a1e;
+  border-top: 1px solid #303039;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 10px;
+  color: #9c98a7;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #000a;
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.dialog {
+  width: 510px;
+  border: 1px solid #44434b;
+  background: #202026;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 30px 100px #0008;
+}
+.dialog h1 {
+  font-size: 25px;
+  margin: 24px 0 12px;
+  font-weight: 600;
+}
+.dialog p {
+  color: #a8a4b2;
+  line-height: 1.7;
+  font-size: 12px;
+  margin: 14px 0;
+}
+.dialog h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+.codeDialog {
+  width: 850px;
+}
+.codeDialog textarea {
+  width: 100%;
+  height: 60vh;
+  background: #151519;
+  color: #c8e7ab;
+  padding: 18px;
+  font-family: monospace;
+  font-size: 12px;
+  border-radius: 7px;
+}
+.notice {
+  position: fixed;
+  bottom: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 700px;
+  background: #343e29;
+  border: 1px solid #657d48;
+  color: #e3f8c7;
+  padding: 14px;
+  z-index: 40;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  overflow-wrap: anywhere;
+}
