@@ -4,18 +4,14 @@ use std::collections::BTreeMap;
 #[tauri::command]
 pub async fn install_library(library: String, approved: bool) -> Result<Option<String>, String> {
     if !approved { return Err("Installation requires approval".into()); }
-    if !["shadcn", "mui", "antd"].contains(&library.as_str()) { return Err("Unknown library".into()); }
+    if library != "shadcn" { return Err("This version supports shadcn/ui only".into()); }
     let Some(folder) = rfd::AsyncFileDialog::new().set_title("Choose parent folder for a NEW library workspace").pick_folder().await else { return Ok(None) };
     tauri::async_runtime::spawn_blocking(move || {
         let workspace = tempfile::Builder::new().prefix("component-studio-library-").tempdir_in(folder.path()).map_err(|e| e.to_string())?.keep();
         // Preserve the workspace and logs on failure. No user directory is overwritten.
         let result = (|| -> Result<String,String> {
             let mut deps = BTreeMap::from([("react", "^19.0.0"), ("react-dom", "^19.0.0")]);
-            match library.as_str() {
-                "mui" => { deps.extend([("@mui/material", "^9.5.0"), ("@emotion/react", "^11.14.0"), ("@emotion/styled", "^11.14.0")]); },
-                "antd" => { deps.insert("antd", "^6.6.0"); },
-                _ => { deps.extend([("tailwindcss", "^4.0.0"), ("@tailwindcss/vite", "^4.0.0"), ("class-variance-authority", "^0.7.1"), ("clsx", "^2.1.1"), ("tailwind-merge", "^3.0.0"), ("lucide-react", "^0.468.0")]); }
-            }
+            deps.extend([("tailwindcss", "^4.0.0"), ("@tailwindcss/vite", "^4.0.0"), ("class-variance-authority", "^0.7.1"), ("clsx", "^2.1.1"), ("tailwind-merge", "^3.0.0"), ("lucide-react", "^0.468.0")]);
             let package = serde_json::json!({"name":"studio-library","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite","build":"vite build"},"dependencies":deps,"devDependencies":{"vite":"^7.0.0","typescript":"^5.9.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0"}});
             std::fs::create_dir_all(workspace.join("src/lib")).map_err(|e| e.to_string())?;
             let config = serde_json::json!({"$schema":"https://ui.shadcn.com/schema.json","style":"new-york","rsc":false,"tsx":true,"tailwind":{"config":"","css":"src/styles.css","baseColor":"neutral","cssVariables":true},"aliases":{"components":"@/components","utils":"@/lib/utils","ui":"@/components/ui","lib":"@/lib","hooks":"@/hooks"}});

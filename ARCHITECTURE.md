@@ -1,11 +1,15 @@
-# Component Studio
+# Architecture
 
-The hardest requirements are preserving preview/export equivalence, mapping a library's finite prop schema and examples, structured drops, and keeping file/process privileges separate from components.
+This application ships one reviewed shadcn edition: Radix / New York v4. Installed project code is never evaluated in the privileged Tauri window.
 
-Modules: `src/model.ts` owns the versioned tree, validation and immutable operations; `src/catalog.ts` describes supported components and variants; `src/renderer.tsx` renders real library components; `src/export.ts` serializes the supported tree into JSX using the TypeScript AST; `src/desktop.ts` exposes dialog-based commands; `src-tauri` owns native filesystem operations. Editor selection, history and viewport are transient.
+- `catalog.ts`: typed component property schemas, editable fields, finite example axes, search and explicit coverage gaps. Button and Link are separate semantic compositions; no fake library Link implementation is presented.
+- `recipes.ts`: trusted component compositions represented as structured elements. Preview and export consume exactly the same recipe, including slots, labels, icons, native input types and interactive structure.
+- `renderer.tsx`: an explicit module allowlist resolves recipes to actual bundled components. Preview boundaries report rendering errors instead of silently substituting HTML.
+- `components/ui/`: official registry source with relative import adjustments. `studio-menu-checkbox.tsx` provides stateful compositions around real menu items. `registry-snapshot.json` records source provenance and local hashes.
+- `model.ts`: versioned serializable trees, prop validation, immutable-operation helpers, cycle rejection and backward migration of the prior shadcn Button icon flag. Non-shadcn projects are explicitly unsupported in this edition.
+- `store.ts`: bounded document undo/redo separated from transient editor state.
+- `CatalogPanel.tsx`, `Properties.tsx`, `canvas.tsx`: searchable examples, schema-driven property editing and document-flow layout. All matched examples remain available; CSS defers offscreen layout. Native HTML drag payloads contain validated props, never JSX or executable code.
+- `export.ts`: TypeScript AST generation from shared recipes, Prettier formatting, recursive local-source dependency collection, and native Vite/Tailwind project output. The compiler/formatter chunk loads on demand. Exported dependency versions match the editor's declared versions.
+- `src-tauri`: native dialogs, atomic project saving, new-directory exports and fixed approved installation commands. Export filenames are confined to known project files or simple component filenames; arbitrary paths and oversized exports are rejected.
 
-Nodes have stable IDs, a qualified component ID, serializable props, base layout and breakpoint overrides, and children. Catalog descriptors declare import names, props, variants, sizes and child support. Structural nodes use CSS Flexbox and Grid. Drops append into a selected/hovered container; explicit layer controls reorder nodes without using pixel coordinates. Cycles and leaf nesting are rejected.
-
-Bundled, trusted library implementations render in the editor. Arbitrary user component code is not loaded. Future imported code needs a separate preview origin with no Tauri IPC. A general package installer must run fixed commands in a generated workspace after approval; arbitrary commands from metadata are never accepted.
-
-Priority: desktop persistence and schema; tree editing/history; supported real library catalogs; generated Vite projects and build checks; broader catalog and managed registry installation; Next.js and isolated custom imports. Availability in the editor is distinct from installing dependencies into an external project. Do not label unsupported catalog components as installed.
+Tests exercise schema validation, search precision, example completeness over registered axes, real module resolution, migration, history, every-example export compilation, browser interactions and Rust path validation. Runtime behaviors are local UI demos; application-specific handlers, imported/custom code, additional adapters, asset workflows and Next.js export remain future work.

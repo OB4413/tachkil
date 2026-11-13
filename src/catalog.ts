@@ -1,87 +1,87 @@
-export type Library = "shadcn" | "mui" | "antd";
-export type Descriptor = {
-  id: string;
-  name: string;
-  library: Library | "layout";
-  category: string;
-  symbol: string;
-  from: string;
-  children: boolean;
-  variants: string[];
-  sizes: string[];
-};
-const structural = ["Container", "Flex", "Grid", "Heading", "Text"];
-export const catalog: Descriptor[] = structural.map((name) => ({
-  id: `layout.${name}`,
-  name,
-  library: "layout",
-  category: "Layout",
-  symbol: name === "Heading" ? "h2" : name === "Text" ? "p" : "div",
-  from: "",
-  children: ["Container", "Flex", "Grid"].includes(name),
-  variants: [],
-  sizes: [],
-}));
-for (const library of ["shadcn", "mui", "antd"] as const) {
-  for (const name of ["Button", "Input", "Card"]) {
-    const symbol = library === "mui" && name === "Input" ? "TextField" : name;
-    catalog.push({
-      id: `${library}.${name}`,
-      name,
-      library,
-      category:
-        name === "Button"
-          ? "Actions"
-          : name === "Input"
-            ? "Forms"
-            : "Data display",
-      symbol,
-      from:
-        library === "shadcn"
-          ? `./components/ui/${name.toLowerCase()}`
-          : library === "mui"
-            ? "@mui/material"
-            : "antd",
-      children: name === "Card",
-      variants:
-        name === "Button"
-          ? library === "shadcn"
-            ? [
-                "default",
-                "secondary",
-                "outline",
-                "ghost",
-                "destructive",
-                "link",
-              ]
-            : library === "mui"
-              ? ["contained", "outlined", "text"]
-              : ["primary", "default", "dashed", "text", "link"]
-          : name === "Input" && library === "mui"
-            ? ["outlined", "filled", "standard"]
-            : [],
-      sizes:
-        name === "Button"
-          ? library === "shadcn"
-            ? [
-                "default",
-                "xs",
-                "sm",
-                "lg",
-                "icon",
-                "icon-xs",
-                "icon-sm",
-                "icon-lg",
-              ]
-            : library === "mui"
-              ? ["small", "medium", "large"]
-              : ["small", "middle", "large"]
-          : [],
-    });
-  }
+// The catalog describes the bundled Radix / New York registry snapshot, not
+// arbitrary packages. Every choice is a real prop or a named composition.
+export type Library = 'shadcn';
+export type PropValue = string | number | boolean;
+export type Props = Record<string, PropValue | undefined>;
+export type Field = { label: string; type: 'text' | 'select' | 'boolean' | 'number' | 'url'; default: PropValue; options?: string[]; min?: number; max?: number };
+export type Descriptor = { id: string; name: string; library: Library | 'layout'; category: string; description: string; keywords: string[]; module: string; children: boolean; fields: Record<string, Field>; axes: string[]; docs: string };
+const select = (label: string, options: string[], value = options[0]): Field => ({label,type:'select',options,default:value});
+const text = (label:string,value:string): Field => ({label,type:'text',default:value});
+const bool = (label:string,value=false): Field => ({label,type:'boolean',default:value});
+const num = (label:string,value:number,min:number,max:number): Field => ({label,type:'number',default:value,min,max});
+const variants = ['default','secondary','outline','ghost','destructive','link'];
+const buttonSizes = ['default','xs','sm','lg','icon','icon-xs','icon-sm','icon-lg'];
+const orientations = ['horizontal','vertical'];
+const states = ['default','disabled','invalid'];
+const buttonFields = {text:text('Text','Button'),variant:select('Variant',variants),size:select('Size',buttonSizes),iconPlacement:select('Icon',['none','leading','trailing']),state:select('State',['default','disabled','loading']),disabled:bool('Disabled')};
+const inputTypes = ['text','email','password','number','search','tel','url','file','date','datetime-local','month','time','week','color','range'];
+export const catalog: Descriptor[] = [];
+function define(name:string,module:string,category:string,description:string,fields:Record<string,Field>,axes:string[] = [],children=false,keywords:string[] = []) {
+  catalog.push({id:`shadcn.${name.replace(/ /g,'')}`,name,library:'shadcn',module,category,description,fields,axes,children,keywords,docs:`https://ui.shadcn.com/docs/components/radix/${module}`});
 }
-export function descriptor(id: string) {
-  const d = catalog.find((d) => d.id === id);
-  if (!d) throw new Error(`Unsupported component: ${id}`);
-  return d;
+for (const name of ['Container','Flex','Grid','Heading','Text']) catalog.push({id:`layout.${name}`,name,library:'layout',module:'',category:'Layout',description:'Document-flow layout and typography',keywords:[],children:['Container','Flex','Grid'].includes(name),fields:['Heading','Text'].includes(name)?{text:text('Text',name)}:{},axes:[],docs:''});
+define('Button','button','Actions','Actions with every bundled style and size.',buttonFields,['variant','size','iconPlacement','state'],false,['action','submit','link','loading','spinner','icon']);
+define('Link','button','Navigation','A semantic anchor composed with Button asChild.',{text:text('Text','View details'),href:{label:'Destination',type:'url',default:'#details'},variant:select('Variant',variants,'link'),size:select('Size',buttonSizes),iconPlacement:select('Icon',['none','leading','trailing'])},['variant','size','iconPlacement'],false,['anchor','navigation','url']);
+define('Input','input','Forms','Native input types, labels, validation and disabled states.',{text:text('Placeholder','Enter a value'),label:text('Label','Your details'),inputType:select('Input type',inputTypes),state:select('State',states),composition:select('Example',['plain','with-label','with-help','with-button']),required:bool('Required'),disabled:bool('Disabled')},['inputType','state','composition'],false,['field','email','password','upload']);
+define('Textarea','textarea','Forms','Multiline text with labels and help text.',{text:text('Placeholder','Write your message…'),label:text('Label','Message'),state:select('State',states),composition:select('Example',['plain','with-label','with-help']),disabled:bool('Disabled')},['state','composition']);
+define('Card','card','Data display','Card containers with editable content slots.',{text:text('Title','Project overview'),description:text('Description','Your work, at a glance.'),composition:select('Example',['plain','with-header','with-footer'])},['composition'],true);
+define('Badge','badge','Data display','All badge styles, plus icon and link compositions.',{text:text('Text','New'),variant:select('Variant',variants),composition:select('Example',['plain','with-icon','as-link']),href:{label:'Destination',type:'url',default:'#details'}},['variant','composition']);
+define('Alert','alert','Feedback','Default and destructive alerts, with optional icon.',{text:text('Title','Heads up'),description:text('Description','Your changes have been saved.'),variant:select('Variant',['default','destructive']),icon:bool('With icon',true)},['variant','icon']);
+define('Accordion','accordion','Data display','Accessible single and multiple disclosure panels.',{text:text('Question','Can I edit this design?'),description:text('Answer','Yes. Select a component and change its properties.'),type:select('Selection mode',['single','multiple']),state:select('Initial state',['closed','open','disabled'])},['type','state']);
+define('Alert Dialog','alert-dialog','Overlays','Confirmation dialog with cancel and action buttons.',{text:text('Trigger label','Confirm action'),description:text('Description','This action needs your confirmation.'),size:select('Size',['default','sm'])},['size']);
+define('Aspect Ratio','aspect-ratio','Layout','A responsive ratio container.',{ratio:select('Ratio',['16:9','4:3','1:1'])},['ratio'],true);
+define('Avatar','avatar','Data display','Fallback initials, badges and groups, in every size.',{text:text('Initials','CS'),size:select('Size',['default','sm','lg']),composition:select('Example',['fallback','with-badge','group'])},['size','composition']);
+define('Breadcrumb','breadcrumb','Navigation','Linked hierarchy with separator and collapsed examples.',{text:text('Current page','Dashboard'),composition:select('Example',['default','collapsed'])},['composition'],false,['link','trail']);
+define('Button Group','button-group','Actions','Grouped buttons with horizontal and vertical layouts.',{orientation:select('Orientation',orientations),variant:select('Button variant',variants),size:select('Button size',['default','xs','sm','lg'])},['orientation','variant','size']);
+define('Checkbox','checkbox','Forms','Labeled, checked, indeterminate, disabled and invalid states.',{text:text('Label','Accept the terms'),state:select('State',['unchecked','checked','indeterminate','disabled','invalid']),disabled:bool('Disabled')},['state']);
+define('Collapsible','collapsible','Data display','Expandable content with an accessible trigger.',{text:text('Trigger label','Show details'),description:text('Content','More details about your project.'),state:select('Initial state',['closed','open','disabled'])},['state']);
+define('Dialog','dialog','Overlays','Modal dialog with accessible title and description.',{text:text('Trigger label','Edit profile'),description:text('Description','Make changes to your profile here.'),composition:select('Example',['default','with-form'])},['composition']);
+define('Dropdown Menu','dropdown-menu','Navigation','Menu items, checkbox items and nested submenus.',{text:text('Trigger label','Open menu'),composition:select('Example',['default','checkboxes','submenu'])},['composition']);
+define('Empty','empty','Feedback','Empty states with icon and action compositions.',{text:text('Title','No projects yet'),description:text('Description','Create a project to get started.'),composition:select('Example',['plain','with-icon','with-action'])},['composition']);
+define('Hover Card','hover-card','Overlays','Contextual information on hover or keyboard focus.',{text:text('Trigger label','About this project'),description:text('Description','A reusable dashboard built with shadcn/ui.'),side:select('Side',['top','right','bottom','left'])},['side'],false,['link']);
+define('Input Group','input-group','Forms','Inputs with addons in each supported position.',{text:text('Placeholder','Search projects'),addon:text('Addon text','https://'),align:select('Addon position',['inline-start','inline-end','block-start','block-end']),composition:select('Example',['text-addon','icon-addon','button-addon','textarea']),state:select('State',states)},['align','composition','state'],false,['search','url','prefix','suffix']);
+define('Kbd','kbd','Typography','Keyboard shortcut labels and key combinations.',{text:text('Key','K'),composition:select('Example',['single','combination'])},['composition'],false,['keyboard','shortcut']);
+define('Label','label','Forms','Accessible label paired with an input.',{text:text('Label','Email address'),state:select('State',['default','disabled'])},['state']);
+define('Native Select','native-select','Forms','Native selection with options and grouped options.',{size:select('Size',['default','sm']),composition:select('Example',['plain','grouped']),state:select('State',states)},['size','composition','state']);
+define('Pagination','pagination','Navigation','Previous, next, active and ellipsis navigation.',{composition:select('Example',['default','with-ellipsis'])},['composition'],false,['link','page']);
+define('Popover','popover','Overlays','Click-triggered content with each side and alignment.',{text:text('Trigger label','Open settings'),description:text('Content','Configure your workspace.'),side:select('Side',['top','right','bottom','left']),align:select('Alignment',['start','center','end'])},['side','align']);
+define('Progress','progress','Feedback','Progress indicators at preset and editable values.',{value:num('Progress',50,0,100)},['value']);
+define('Radio Group','radio-group','Forms','Single-choice options in either orientation.',{orientation:select('Orientation',orientations),state:select('State',['default','disabled']),value:select('Initial choice',['starter','pro','team'])},['orientation','state']);
+define('Scroll Area','scroll-area','Layout','Scrollable content using the library scrollbars.',{orientation:select('Orientation',orientations)},['orientation'],true);
+define('Select','select','Forms','Radix selection with labels, groups and supported sizes.',{text:text('Placeholder','Select a plan'),size:select('Trigger size',['default','sm']),state:select('State',states),composition:select('Example',['plain','grouped'])},['size','state','composition']);
+define('Separator','separator','Layout','Horizontal and vertical dividers.',{orientation:select('Orientation',orientations)},['orientation']);
+define('Sheet','sheet','Overlays','Sliding panel from each supported edge.',{text:text('Trigger label','Open panel'),description:text('Description','Manage your dashboard settings.'),side:select('Side',['top','right','bottom','left'])},['side']);
+define('Skeleton','skeleton','Feedback','Loading placeholders composed for text, avatars and cards.',{composition:select('Example',['text','avatar','card'])},['composition']);
+define('Slider','slider','Forms','Single-value and range sliders in both orientations.',{orientation:select('Orientation',orientations),composition:select('Example',['single','range']),state:select('State',['default','disabled']),value:num('Initial value',40,0,100)},['orientation','composition','state']);
+define('Spinner','spinner','Feedback','Loading spinner with optional label or button.',{composition:select('Example',['plain','with-label','in-button'])},['composition'],false,['loading','busy']);
+define('Switch','switch','Forms','Labeled switches in both sizes and supported states.',{text:text('Label','Airplane mode'),size:select('Size',['default','sm']),state:select('State',['unchecked','checked','disabled']),disabled:bool('Disabled')},['size','state']);
+define('Table','table','Data display','Structured tables with captions and footer totals.',{composition:select('Example',['default','with-caption','with-footer'])},['composition']);
+define('Tabs','tabs','Navigation','Default and line tab lists in either orientation.',{variant:select('List variant',['default','line']),orientation:select('Orientation',orientations),text:text('First panel','Your account details.'),description:text('Second panel','Manage your notification preferences.')},['variant','orientation']);
+define('Toggle','toggle','Actions','Toggle variants, sizes, and pressed or disabled states.',{text:text('Accessible label','Bold'),variant:select('Variant',['default','outline']),size:select('Size',['default','sm','lg']),state:select('State',['off','on','disabled'])},['variant','size','state']);
+define('Toggle Group','toggle-group','Actions','Single or multiple selection, styles and sizes.',{type:select('Selection mode',['single','multiple']),variant:select('Variant',['default','outline']),size:select('Size',['default','sm','lg']),state:select('State',['default','disabled'])},['type','variant','size','state']);
+define('Tooltip','tooltip','Overlays','Tooltip triggers with four placements.',{text:text('Trigger label','Help'),description:text('Tooltip','More information about this action.'),side:select('Side',['top','right','bottom','left'])},['side']);
+define('Command','command','Navigation','Searchable command list with groups and keyboard navigation.',{text:text('Search placeholder','Type a command…'),composition:select('Example',['default','with-shortcuts'])},['composition'],false,['palette','search']);
+define('Context Menu','context-menu','Navigation','Right-click menu with actions and stateful checkbox items.',{text:text('Trigger text','Right-click here'),composition:select('Example',['default','checkboxes','submenu'])},['composition']);
+define('Menubar','menubar','Navigation','Desktop-style menus with actions and shortcuts.',{composition:select('Example',['default','with-shortcuts'])},['composition']);
+define('Navigation Menu','navigation-menu','Navigation','Links and dropdown navigation with viewport options.',{composition:select('Example',['links','with-dropdown']),viewport:bool('Use viewport',true)},['composition','viewport'],false,['link','navbar']);
+define('Field','field','Forms','Labeled controls with every field orientation and validation states.',{text:text('Label','Display name'),description:text('Help text','Shown on your public profile.'),orientation:select('Orientation',['vertical','horizontal','responsive']),composition:select('Control',['input','textarea','checkbox']),state:select('State',states)},['orientation','composition','state']);
+define('Item','item','Data display','List items in every variant and size, with media and actions.',{text:text('Title','Project dashboard'),description:text('Description','Updated a few minutes ago.'),variant:select('Variant',['default','outline','muted']),size:select('Size',['default','sm']),composition:select('Example',['plain','with-icon','with-action'])},['variant','size','composition']);
+define('Input OTP','input-otp','Forms','One-time password inputs with grouping and validation.',{composition:select('Example',['four-digits','six-digits','with-separator']),state:select('State',states)},['composition','state'],false,['verification','code']);
+define('Drawer','drawer','Overlays','A draggable panel from each supported direction.',{text:text('Trigger label','Open drawer'),description:text('Description','Adjust your preferences.'),direction:select('Direction',['top','right','bottom','left'])},['direction']);
+define('Carousel','carousel','Data display','Scrollable slides in both orientations.',{orientation:select('Orientation',orientations),composition:select('Example',['single','multiple'])},['orientation','composition']);
+define('Resizable','resizable','Layout','Resizable panel layouts with optional drag handles.',{orientation:select('Orientation',orientations),withHandle:bool('Show handle',true)},['orientation','withHandle']);
+export const shadcnFamilies = catalog.filter(d=>d.library==='shadcn');
+export function descriptor(id:string):Descriptor {const d=catalog.find(d=>d.id===id);if(!d)throw new Error(`Unsupported component: ${id}`);return d;}
+export function defaults(d:Descriptor):Props {return Object.fromEntries(Object.entries(d.fields).map(([k,f])=>[k,f.default]));}
+export type Example = {id:string;componentId:string;label:string;props:Props;kind:'variant'|'composition';search:string};
+export function examplesFor(d:Descriptor):Example[] {
+  let entries:Props[]=[defaults(d)];
+  for(const axis of d.axes) { const f=d.fields[axis];const values=f.type==='boolean'?[false,true]:f.type==='number'?[0,25,50,75,100]:f.options!;entries=entries.flatMap(p=>values.map(value=>({...p,[axis]:value}))); }
+  // Icon-only sizes already contain an icon; leading/trailing would be duplicate previews.
+  entries=entries.filter(p=>!(String(p.size).startsWith('icon')&&p.iconPlacement!=='none'));
+  return entries.map(p=>{const values=d.axes.map(k=>`${p[k]}`);const label=values.join(' · ')||'Default';const aliases=d.name==='Button'?'action submit':d.name==='Input'?`field ${p.inputType==='file'?'upload':''}`:d.keywords.join(' ');return {id:`${d.id}:${values.join(':')}`,componentId:d.id,label,props:p,kind:p.composition&&p.composition!=='plain'?'composition':'variant',search:`${d.name} ${d.category} ${aliases} ${label}`.toLowerCase()};});
 }
+export const examples = catalog.flatMap(examplesFor);
+export function searchExamples(query:string,family='all',category='all') {const terms=query.toLowerCase().trim().split(/\s+/).filter(Boolean);return examples.filter(e=>(family==='all'||e.componentId===family)&&(category==='all'||descriptor(e.componentId).category===category)&&terms.every(term=>e.search.includes(term)));}
+// These require additional adapters. Listing gaps is preferable to inventing previews.
+export const pendingFamilies = ['Calendar','Chart','Combobox','Data Table','Date Picker','Sidebar','Sonner','Form'];

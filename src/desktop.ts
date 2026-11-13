@@ -9,7 +9,7 @@ function native() {
 export async function saveProject(project: Project) {
   native();
   return invoke<string | null>("save_project", {
-    contents: JSON.stringify(project, null, 2),
+    contents: JSON.stringify(parseProject(JSON.stringify(project)), null, 2),
   });
 }
 export async function openProject() {

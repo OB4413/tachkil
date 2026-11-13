@@ -1,4 +1,4 @@
-import { descriptor, type Library } from "./catalog";
+import { descriptor, defaults, type Props, type Library } from "./catalog";
 export type Style = {
   display?: "flex" | "grid" | "block";
   flexDirection?: "row" | "column";
@@ -12,13 +12,7 @@ export type Node = {
   id: string;
   componentId: string;
   name: string;
-  props: {
-    text?: string;
-    variant?: string;
-    size?: string;
-    disabled?: boolean;
-    icon?: boolean;
-  };
+  props: Props;
   styles: Style;
   responsive: { tablet?: Style; mobile?: Style };
   children: Node[];
@@ -35,12 +29,8 @@ export function makeNode(id: string, variant?: string): Node {
     id: crypto.randomUUID(),
     componentId: id,
     name: d.name,
-    props: {
-      text: d.children ? undefined : d.name,
-      variant: variant || d.variants[0],
-      size: d.sizes[0],
-    },
-    styles: d.children
+    props: { ...defaults(d), ...(variant ? { variant } : {}) },
+    styles: d.children && d.library === 'layout'
       ? {
           display: d.name === "Grid" ? "grid" : "flex",
           flexDirection: "column",
@@ -55,7 +45,7 @@ export function makeNode(id: string, variant?: string): Node {
     children: [],
   };
 }
-export function newProject(name: string, library: Library): Project {
+export function newProject(name: string, library: Library = "shadcn"): Project {
   return {
     schemaVersion: 1,
     name,
@@ -106,9 +96,9 @@ export function parseProject(raw: string): Project {
   if (
     p.schemaVersion !== 1 ||
     typeof p.name !== "string" ||
-    !["shadcn", "mui", "antd"].includes(p.library)
+    p.library !== "shadcn"
   )
-    throw new Error("Invalid project format");
+    throw new Error("This version opens shadcn/ui projects only. Other library projects are not converted or overwritten.");
   const ids = new Set<string>();
   function validate(n: Node, depth: number) {
     if (
@@ -131,16 +121,11 @@ export function parseProject(raw: string): Project {
       throw new Error("Mixed library project");
     if (!d.children && n.children.length)
       throw new Error("Leaf components cannot contain children");
-    for (const key of ["text", "variant", "size"] as const)
-      if (n.props[key] !== undefined && typeof n.props[key] !== "string")
-        throw new Error("Invalid props");
-    for (const key of ["disabled", "icon"] as const)
-      if (n.props[key] !== undefined && typeof n.props[key] !== "boolean")
-        throw new Error("Invalid boolean prop");
-    if (n.props.variant && !d.variants.includes(n.props.variant))
-      throw new Error("Unknown variant");
-    if (n.props.size && !d.sizes.includes(n.props.size))
-      throw new Error("Unknown size");
+    // Migrate the previous Button icon flag without changing the file on disk.
+    if (n.componentId === "shadcn.Button" && "icon" in n.props) {
+      n.props.iconPlacement = n.props.icon ? "leading" : "none"; delete n.props.icon;
+    }
+    n.props = validateProps(n.componentId, n.props);
     for (const styles of [n.styles, n.responsive.tablet, n.responsive.mobile])
       if (styles)
         for (const [key, value] of Object.entries(styles)) {
@@ -163,4 +148,24 @@ export function parseProject(raw: string): Project {
   }
   validate(p.root, 0);
   return p;
+}
+
+export function validHref(value:string) { return /^(https?:\/\/|mailto:|tel:|#|\/(?!\/))/.test(value) && !/[\u0000-\u001f]/.test(value); }
+export function validateProps(componentId:string, props:Props):Props {
+ const d=descriptor(componentId);
+ if(!props || typeof props!=='object' || Array.isArray(props)) throw new Error('Invalid properties');
+ const result=defaults(d);
+ for(const [key,value] of Object.entries(props)) {
+  if(value===undefined)continue;
+  const field=d.fields[key];
+  if(!field)throw new Error('Unsupported property: '+key);
+  if(field.type==='boolean' ? typeof value!=='boolean' : field.type==='number' ? typeof value!=='number'||!Number.isFinite(value)||value<(field.min??0)||value>(field.max??100) : typeof value!=='string'||value.length>10000)throw new Error('Invalid property: '+key);
+  if(field.options&&!field.options.includes(String(value)))throw new Error('Unknown '+key);
+  if(field.type==='url'&&!validHref(String(value)))throw new Error('Use an http(s), mailto, tel, fragment or root-relative link.');
+  result[key]=value;
+ }
+ return result;
+}
+export function makeExampleNode(componentId:string, props:Props):Node {
+ const n=makeNode(componentId);n.props=validateProps(componentId,props);return n;
 }

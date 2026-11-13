@@ -1,6 +1,6 @@
 # shadcn/ui
 
-The files under `src/components/ui` were retrieved from the official shadcn/ui new-york-v4 registry (button, input, card). Imports of the registry's `cn` helper were adapted to the local utility path.
+The library files under `src/components/ui` were retrieved from the official shadcn/ui new-york-v4 registry. Imports of the registry's `cn` helper and sibling components were adapted to local relative paths. See `src/registry-snapshot.json` for per-file sources and hashes. `studio-menu-checkbox.tsx` is a Component Studio composition, not an upstream registry file.
 
 Source: https://ui.shadcn.com/r/styles/new-york-v4/button.json (and input.json, card.json)
 
